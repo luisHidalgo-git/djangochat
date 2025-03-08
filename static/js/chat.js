@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
   chatSocket.onopen = function (e) {
     console.log("The connection was set up successfully!");
   };
+  
   chatSocket.onclose = function (e) {
     console.log("Something unexpected happened!");
   };
@@ -48,9 +49,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   };
 
-  // Update the onmessage function to update the chat list
   chatSocket.onmessage = function (e) {
     const data = JSON.parse(e.data);
+
+    if (data.type === 'status') {
+      // Update user status indicator
+      const userItems = document.querySelectorAll('.list-group-item');
+      userItems.forEach(item => {
+        if (item.querySelector('strong').textContent === data.user) {
+          const statusIndicator = item.querySelector('.status-indicator');
+          statusIndicator.style.backgroundColor = data.status === 'online' ? '#28a745' : '#dc3545';
+          
+          // Update status text in chat header if this is the current chat
+          if (data.user === roomName) {
+            const statusText = document.querySelector('.text-muted');
+            if (statusText) {
+              statusText.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+            }
+          }
+        }
+      });
+      return;
+    }
 
     if (data.message && data.sender) {
       // Display the new message in the chatbox
@@ -66,7 +86,6 @@ document.addEventListener("DOMContentLoaded", function () {
         (data.sender === userUsername ? "sender" : "receiver");
       div.innerHTML = `<div><span>${data.message}</span></div>`;
       chatbox.appendChild(div);
-      // Scroll to the bottom of the chatbox
       scrollToBottom();
 
       // Update the last message in the sidebar
@@ -79,12 +98,11 @@ document.addEventListener("DOMContentLoaded", function () {
             ? "You: " + data.message
             : data.message;
 
-        // update timestamp in format of UTC time 12:00, 13:00 etc
         const timestamp = document.querySelector(".list-group-item.active small");
         const date = new Date().toUTCString();
         timestamp.innerHTML = date.slice(17, 22);
 
-        // update the chats list sorting by the last message timestamp in descending order
+        // Update the chats list sorting
         const chats = document.querySelectorAll(".list-group-item");
         const chatsArray = Array.from(chats);
         const chatsSorted = chatsArray.sort((a, b) => {
@@ -98,11 +116,7 @@ document.addEventListener("DOMContentLoaded", function () {
         chatsSorted.forEach((chat) => {
           contacts.appendChild(chat);
         });
-      } else {
-        console.error("No active chat selected");
       }
-    } else {
-      console.error("Message or sender data is missing:", data);
     }
   };
 });

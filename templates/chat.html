@@ -21,10 +21,16 @@
             class="list-group-item list-group-item-action {% if item.user.username == room_name %} active {% endif %}"
             data-id="{{ room_name }}">
             <div class="d-flex align-items-center">
-              <!-- Profile Icon -->
-              <img src="https://ui-avatars.com/api/?name={{ item.user.username|urlencode }}&size=64&background=random"
-                alt="{{ item.user.username }}'s Profile Image" class="profile-icon rounded-circle mr-3"
-                style="width: 1.8rem; height: 1.8rem; object-fit: cover" />
+              <!-- Profile Icon with Status Indicator -->
+              <div class="position-relative">
+                <img src="https://ui-avatars.com/api/?name={{ item.user.username|urlencode }}&size=64&background=random"
+                  alt="{{ item.user.username }}'s Profile Image" class="profile-icon rounded-circle mr-3"
+                  style="width: 1.8rem; height: 1.8rem; object-fit: cover" />
+                <span class="status-indicator {{ item.status }}" 
+                      style="position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; 
+                             background-color: {% if item.status == 'online' %}#28a745{% else %}#dc3545{% endif %};">
+                </span>
+              </div>
 
               <!-- Message Content and Username -->
               <div class="w-100">
@@ -69,11 +75,26 @@
       <div class="col-9 d-flex flex-column chat" data-id="{{ room_name }}">
         <!-- Chat Header -->
         <div class="d-flex align-items-center p-1">
-          <img src="https://ui-avatars.com/api/?name={{ room_name|urlencode }}&size=64&background=random"
-            style="border-radius: 50%; height: 45px; width: auto" />
-          <h3 class="display-5 mb-0" style="padding-left: 10px">
-            {{ room_name }}
-          </h3>
+          <div class="position-relative">
+            <img src="https://ui-avatars.com/api/?name={{ room_name|urlencode }}&size=64&background=random"
+              style="border-radius: 50%; height: 45px; width: auto" />
+            {% for item in user_last_messages %}
+              {% if item.user.username == room_name %}
+                <span class="status-indicator {{ item.status }}"
+                      style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; border-radius: 50%;
+                             background-color: {% if item.status == 'online' %}#28a745{% else %}#dc3545{% endif %};">
+                </span>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <div class="ml-3">
+            <h3 class="display-5 mb-0">{{ room_name }}</h3>
+            {% for item in user_last_messages %}
+              {% if item.user.username == room_name %}
+                <small class="text-muted">{{ item.status|title }}</small>
+              {% endif %}
+            {% endfor %}
+          </div>
 
           <!-- Search Form aligned to the right -->
           <form method="GET" action="" class="p-3 ml-auto">
@@ -114,5 +135,4 @@
   {{ request.user.username|json_script:"user_username" }}
   <script src="{% static 'js/chat.js' %}"></script>
 </body>
-
 </html>

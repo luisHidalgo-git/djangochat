@@ -3,8 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Message
 from django.db.models import Q
-from datetime import datetime  # Asegúrate de importar datetime
+from datetime import datetime
 from django.utils import timezone
+from django.core.cache import cache
 
 @login_required
 def chat_room(request, room_name):
@@ -27,16 +28,20 @@ def chat_room(request, room_name):
             (Q(receiver=request.user) & Q(sender=user))
         ).order_by('-timestamp').first()
 
+        # Get user's online status from cache
+        status = cache.get(f'user_status_{user.username}', 'offline')
+
         user_last_messages.append({
             'user': user,
-            'last_message': last_message
+            'last_message': last_message,
+            'status': status
         })
 
     # Sort user_last_messages by the timestamp of the last_message in descending order
     user_last_messages.sort(
         key=lambda x: x['last_message'].timestamp if x['last_message'] else timezone.make_aware(datetime.min),
         reverse=True
-)
+    )
 
     return render(request, 'chat.html', {
         'room_name': room_name,
