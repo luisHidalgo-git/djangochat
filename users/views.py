@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
-
+def index(request):
+    return render(request, "index.html")
 
 def login_page(request):
     if request.method == 'POST':
@@ -23,13 +24,11 @@ def login_page(request):
         return redirect('/chat/Sala/')
     return render(request,'login.html')
 
-
 @login_required
 def logout_page(request):
     logout(request)  
     messages.success(request, 'You have been logged out successfully.') 
     return redirect('/')
-
 
 def signup_view(request):
     if request.method == 'POST':
@@ -59,4 +58,3 @@ def signup_view(request):
     if request.user.is_authenticated:
         return redirect('/chat/Sala/') #todo: pass usename
     return render(request, 'signup.html')
-
