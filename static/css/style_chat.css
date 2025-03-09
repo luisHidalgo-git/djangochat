@@ -36,6 +36,15 @@
     text-align: left;
 }
 
+.message-status {
+    display: inline-block;
+    margin-left: 5px;
+}
+
+.message-status i {
+    font-size: 0.8em;
+}
+
 .chat-input {
     background-color: white;
 }

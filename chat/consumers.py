@@ -30,6 +30,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
+        # Mark messages as delivered when user connects to chat
+        await self.mark_messages_as_delivered()
+
     async def disconnect(self, close_code):
         # Set user as offline
         await self.set_user_offline(self.scope['user'].username)
@@ -51,9 +54,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
         sender = self.scope['user']  
-        receiver = await self.get_receiver_user() 
+        receiver = await self.get_receiver_user()
 
-        await self.save_message(sender, receiver, message)
+        # Save message and get its status
+        saved_message = await self.save_message(sender, receiver, message)
+        message_status = await self.get_message_status(saved_message)
 
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -61,7 +66,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'type': 'chat_message',
                 'sender': sender.username,
                 'receiver': receiver.username,
-                'message': message
+                'message': message,
+                'status': message_status
             }
         )
 
@@ -69,12 +75,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = event['message']
         sender = event['sender']
         receiver = event['receiver']
+        status = event.get('status', 'sent')
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'sender': sender,
             'receiver': receiver,
-            'message': message
+            'message': message,
+            'status': status
         }))
 
     async def user_status(self, event):
@@ -87,7 +95,35 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def save_message(self, sender, receiver, message):
-        Message.objects.create(sender=sender, receiver=receiver, content=message)
+        msg = Message.objects.create(
+            sender=sender,
+            receiver=receiver,
+            content=message,
+            status=Message.SENT
+        )
+        return msg
+
+    @sync_to_async
+    def get_message_status(self, message):
+        return message.status
+
+    @sync_to_async
+    def mark_messages_as_delivered(self):
+        # Mark all unread messages in this chat as delivered
+        Message.objects.filter(
+            receiver=self.scope['user'],
+            sender__username=self.room_name,
+            status=Message.SENT
+        ).update(status=Message.DELIVERED)
+
+    @sync_to_async
+    def mark_messages_as_read(self):
+        # Mark all delivered messages in this chat as read
+        Message.objects.filter(
+            receiver=self.scope['user'],
+            sender__username=self.room_name,
+            status=Message.DELIVERED
+        ).update(status=Message.READ)
 
     @sync_to_async
     def get_receiver_user(self):

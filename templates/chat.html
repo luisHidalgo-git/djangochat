@@ -107,12 +107,27 @@
 
         <!-- Chatbox -->
         <div id="chatbox" class="chatbox flex-fill p-3">
-          {% if chats %} {% for message in chats %}
-          <div class="chat-message {% if message.sender == request.user %} sender {% else %} receiver {% endif %}">
-            <span>{{ message.content }}</span>
-          </div>
-          {% endfor %} {% else %}
-          <p class="no-messages">No Messages.</p>
+          {% if chats %}
+            {% for message in chats %}
+              <div class="chat-message {% if message.sender == request.user %} sender {% else %} receiver {% endif %}">
+                <div class="d-flex align-items-center">
+                  <span>{{ message.content }}</span>
+                  {% if message.sender == request.user %}
+                    <div class="message-status">
+                      {% if message.status == 'sent' %}
+                        <i class="fas fa-check text-secondary ml-2"></i>
+                      {% elif message.status == 'delivered' %}
+                        <i class="fas fa-check-double text-secondary ml-2"></i>
+                      {% elif message.status == 'read' %}
+                        <i class="fas fa-check-double text-primary ml-2"></i>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="no-messages">No Messages.</p>
           {% endif %}
         </div>
 

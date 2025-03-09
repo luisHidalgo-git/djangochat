@@ -6,6 +6,25 @@ document.addEventListener("DOMContentLoaded", function () {
     chatbox.scrollTop = chatbox.scrollHeight;
   }
 
+  // Function to create status indicators
+  function createStatusIndicator(status) {
+    const statusDiv = document.createElement('div');
+    statusDiv.className = 'message-status';
+    
+    if (status === 'sent') {
+      // Una palomita gris
+      statusDiv.innerHTML = '<i class="fas fa-check text-secondary ml-2"></i>';
+    } else if (status === 'delivered') {
+      // Dos palomitas grises
+      statusDiv.innerHTML = '<i class="fas fa-check-double text-secondary ml-2"></i>';
+    } else if (status === 'read') {
+      // Dos palomitas azules
+      statusDiv.innerHTML = '<i class="fas fa-check-double text-primary ml-2"></i>';
+    }
+    
+    return statusDiv;
+  }
+
   // Scroll to bottom when the page is loaded
   scrollToBottom();
 
@@ -80,12 +99,20 @@ document.addEventListener("DOMContentLoaded", function () {
         noMessages.style.display = "none";
       }
 
-      const div = document.createElement("div");
-      div.className =
-        "chat-message " +
-        (data.sender === userUsername ? "sender" : "receiver");
-      div.innerHTML = `<div><span>${data.message}</span></div>`;
-      chatbox.appendChild(div);
+      const messageContainer = document.createElement("div");
+      messageContainer.className = "chat-message " + (data.sender === userUsername ? "sender" : "receiver");
+      
+      const messageContent = document.createElement("div");
+      messageContent.className = "d-flex align-items-center";
+      messageContent.innerHTML = `<span>${data.message}</span>`;
+
+      // Add status indicators only for sent messages
+      if (data.sender === userUsername) {
+        messageContent.appendChild(createStatusIndicator(data.status));
+      }
+
+      messageContainer.appendChild(messageContent);
+      chatbox.appendChild(messageContainer);
       scrollToBottom();
 
       // Update the last message in the sidebar
