@@ -15,22 +15,22 @@
 
 ## Pasos para hacer uso del proyecto
 
-## Crear y acivar el entorno virtual
+### Crear y acivar el entorno virtual
 ```
 python -m venv venv && source venv/bin/activate
 ```
 
-## Instalar archivo requirements
+### Instalar archivo requirements
 ```
 pip install -r requirements.txt
 ```
 
-## Cargar las migraciones
+### Cargar las migraciones
 ```
 python manage.py makemigrations && python manage.py migrate
 ```
 
-## Ejecutar el proyecto
+### Ejecutar el proyecto
 ```
 python manage.py runserver
 ```
