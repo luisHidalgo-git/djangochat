@@ -1,31 +1,84 @@
 document.addEventListener("DOMContentLoaded", function () {
   const chatbox = document.querySelector("#chatbox");
 
-  // Function to scroll to the bottom of the chatbox
   function scrollToBottom() {
     chatbox.scrollTop = chatbox.scrollHeight;
   }
 
-  // Function to create status indicators
   function createStatusIndicator(status) {
     const statusDiv = document.createElement('div');
     statusDiv.className = 'message-status';
     
     if (status === 'sent') {
-      // Una palomita gris
       statusDiv.innerHTML = '<i class="fas fa-check text-secondary ml-2"></i>';
     } else if (status === 'delivered') {
-      // Dos palomitas grises
       statusDiv.innerHTML = '<i class="fas fa-check-double text-secondary ml-2"></i>';
     } else if (status === 'read') {
-      // Dos palomitas azules
       statusDiv.innerHTML = '<i class="fas fa-check-double text-primary ml-2"></i>';
     }
     
     return statusDiv;
   }
 
-  // Scroll to bottom when the page is loaded
+  function createMessageElement(data, userUsername) {
+    const messageContainer = document.createElement("div");
+    messageContainer.className = "chat-message " + (data.sender === userUsername ? "sender" : "receiver");
+    messageContainer.dataset.timestamp = data.timestamp;
+    messageContainer.dataset.status = data.status;
+    messageContainer.dataset.type = data.message_type;
+    messageContainer.dataset.subject = data.subject;
+    messageContainer.dataset.messageId = data.message_id;
+
+    const messageContent = document.createElement("div");
+    messageContent.className = "d-flex align-items-center position-relative";
+
+    // Add options dropdown for sender's messages
+    if (data.sender === userUsername) {
+      const dropdownHtml = `
+        <div class="dropdown message-options">
+          <button class="btn btn-link text-muted dropdown-toggle" type="button" data-toggle="dropdown">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+          <div class="dropdown-menu">
+            <a class="dropdown-item set-urgent" href="#">Mensaje Urgente</a>
+            <a class="dropdown-item set-subject" href="#">Materia</a>
+            <a class="dropdown-item show-details" href="#">Más detalles</a>
+          </div>
+        </div>
+      `;
+      messageContent.innerHTML = dropdownHtml;
+    }
+
+    const messageText = document.createElement("span");
+    messageText.textContent = data.message;
+    messageContent.appendChild(messageText);
+
+    if (data.sender === userUsername) {
+      messageContent.appendChild(createStatusIndicator(data.status));
+    }
+
+    messageContainer.appendChild(messageContent);
+
+    // Add labels if needed
+    if (data.message_type === 'urgent') {
+      const urgentLabel = document.createElement("div");
+      urgentLabel.className = "message-label urgent-label";
+      urgentLabel.textContent = "Mensaje Urgente";
+      messageContainer.appendChild(urgentLabel);
+    }
+
+    if (data.subject !== 'none') {
+      const subjectLabel = document.createElement("div");
+      subjectLabel.className = "message-label subject-label";
+      subjectLabel.textContent = data.subject === 'programming' ? 'Programación' :
+                                data.subject === 'math' ? 'Matemáticas' :
+                                data.subject === 'english' ? 'Inglés' : data.subject;
+      messageContainer.appendChild(subjectLabel);
+    }
+
+    return messageContainer;
+  }
+
   scrollToBottom();
 
   const roomName = JSON.parse(document.getElementById("room_name").textContent);
@@ -51,6 +104,60 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   };
 
+  // Handle message options
+  $(document).on('click', '.set-urgent', function(e) {
+    e.preventDefault();
+    const messageContainer = $(this).closest('.chat-message');
+    const messageId = messageContainer.data('messageId');
+    
+    chatSocket.send(JSON.stringify({
+      action: 'update_message',
+      message_id: messageId,
+      message_type: 'urgent'
+    }));
+  });
+
+  $(document).on('click', '.set-subject', function(e) {
+    e.preventDefault();
+    const messageContainer = $(this).closest('.chat-message');
+    $('#subjectModal').modal('show');
+    $('#subjectModal').data('messageContainer', messageContainer);
+  });
+
+  // Handle subject selection
+  $('#subjectModal .list-group-item').click(function() {
+    const subject = $(this).data('subject');
+    const messageContainer = $('#subjectModal').data('messageContainer');
+    const messageId = messageContainer.data('messageId');
+    
+    chatSocket.send(JSON.stringify({
+      action: 'update_message',
+      message_id: messageId,
+      subject: subject
+    }));
+    
+    $('#subjectModal').modal('hide');
+  });
+
+  $(document).on('click', '.show-details', function(e) {
+    e.preventDefault();
+    const messageContainer = $(this).closest('.chat-message');
+    
+    $('#messageTimestamp').text(messageContainer.data('timestamp'));
+    $('#messageStatus').text(messageContainer.data('status'));
+    $('#messageType').text(messageContainer.data('type') === 'urgent' ? 'Urgente' : 'Normal');
+    
+    const subject = messageContainer.data('subject');
+    $('#messageSubject').text(
+      subject === 'programming' ? 'Programación' :
+      subject === 'math' ? 'Matemáticas' :
+      subject === 'english' ? 'Inglés' :
+      'Ninguna'
+    );
+    
+    $('#messageDetailsModal').modal('show');
+  });
+
   document.querySelector("#submit_button").onclick = function (e) {
     var messageInput = document.querySelector("#my_input").value;
 
@@ -59,12 +166,15 @@ document.addEventListener("DOMContentLoaded", function () {
     } else {
       chatSocket.send(
         JSON.stringify({
+          action: 'new_message',
           message: messageInput,
           username: userUsername,
           room_name: roomName,
+          message_type: 'normal',
+          subject: 'none'
         })
       );
-      document.querySelector("#my_input").value = ""; // Clear input field after sending
+      document.querySelector("#my_input").value = "";
     }
   };
 
@@ -72,14 +182,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const data = JSON.parse(e.data);
 
     if (data.type === 'status') {
-      // Update user status indicator
       const userItems = document.querySelectorAll('.list-group-item');
       userItems.forEach(item => {
         if (item.querySelector('strong').textContent === data.user) {
           const statusIndicator = item.querySelector('.status-indicator');
           statusIndicator.style.backgroundColor = data.status === 'online' ? '#28a745' : '#dc3545';
           
-          // Update status text in chat header if this is the current chat
           if (data.user === roomName) {
             const statusText = document.querySelector('.text-muted');
             if (statusText) {
@@ -91,31 +199,45 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    if (data.action === 'message_updated') {
+      const messageContainer = $(`.chat-message[data-message-id="${data.message_id}"]`);
+      
+      // Update message type
+      if (data.message_type) {
+        messageContainer.attr('data-type', data.message_type);
+        if (data.message_type === 'urgent') {
+          if (!messageContainer.find('.urgent-label').length) {
+            const label = $('<div class="message-label urgent-label">Mensaje Urgente</div>');
+            messageContainer.append(label);
+          }
+        }
+      }
+      
+      // Update subject
+      if (data.subject) {
+        messageContainer.attr('data-subject', data.subject);
+        messageContainer.find('.subject-label').remove();
+        const subjectText = data.subject === 'programming' ? 'Programación' :
+                           data.subject === 'math' ? 'Matemáticas' :
+                           data.subject === 'english' ? 'Inglés' : data.subject;
+        const label = $(`<div class="message-label subject-label">${subjectText}</div>`);
+        messageContainer.append(label);
+      }
+      
+      return;
+    }
+
     if (data.message && data.sender) {
-      // Display the new message in the chatbox
       const chatbox = document.querySelector("#chatbox");
       const noMessages = document.querySelector(".no-messages");
       if (noMessages) {
         noMessages.style.display = "none";
       }
 
-      const messageContainer = document.createElement("div");
-      messageContainer.className = "chat-message " + (data.sender === userUsername ? "sender" : "receiver");
-      
-      const messageContent = document.createElement("div");
-      messageContent.className = "d-flex align-items-center";
-      messageContent.innerHTML = `<span>${data.message}</span>`;
-
-      // Add status indicators only for sent messages
-      if (data.sender === userUsername) {
-        messageContent.appendChild(createStatusIndicator(data.status));
-      }
-
-      messageContainer.appendChild(messageContent);
-      chatbox.appendChild(messageContainer);
+      const messageElement = createMessageElement(data, userUsername);
+      chatbox.appendChild(messageElement);
       scrollToBottom();
 
-      // Update the last message in the sidebar
       const lastMessage = document.querySelector(
         ".list-group-item.active #last-message"
       );
@@ -129,7 +251,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const date = new Date().toUTCString();
         timestamp.innerHTML = date.slice(17, 22);
 
-        // Update the chats list sorting
         const chats = document.querySelectorAll(".list-group-item");
         const chatsArray = Array.from(chats);
         const chatsSorted = chatsArray.sort((a, b) => {

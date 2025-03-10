@@ -17,9 +17,11 @@
     border-radius: 8px;
     padding: 10px;
     display: flex;
+    flex-direction: column;
     width: fit-content;
     margin-bottom: 10px;
     clear: both;
+    position: relative;
 }
 
 .chat-message.sender {
@@ -43,6 +45,35 @@
 
 .message-status i {
     font-size: 0.8em;
+}
+
+.message-options {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.message-options .btn {
+    padding: 0;
+    color: #6c757d;
+}
+
+.message-label {
+    font-size: 0.8em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+    display: inline-block;
+}
+
+.urgent-label {
+    background-color: #dc3545;
+    color: white;
+}
+
+.subject-label {
+    background-color: #ffc107;
+    color: #000;
 }
 
 .chat-input {
