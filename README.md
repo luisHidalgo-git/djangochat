@@ -2,16 +2,16 @@
 ![Vista Previa](./static/img/image.png)
 
 Características:
--Autenticación con JWT
--Verificación de no soy un robot
--Mensajería en tiempo real
--Estado de usuarios en línea
--Errores y alertas personalizadas
--Filtro avanzado de búsqueda
--Indicador de mensajes urgentes
--Indicador de mensajes por matería
--Manejo de archivos estaticos
--Despliegue en Railway.app
+1. Autenticación con JWT
+2. Verificación de no soy un robot
+3. Mensajería en tiempo real
+4. Estado de usuarios en línea
+5. Errores y alertas personalizadas
+6. Filtro avanzado de búsqueda
+7. Indicador de mensajes urgentes
+8. Indicador de mensajes por matería
+9. Manejo de archivos estaticos
+10. Despliegue en Railway.app
 
 ## Pasos para hacer uso del proyecto
 
