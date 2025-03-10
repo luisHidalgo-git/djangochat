@@ -1,7 +1,7 @@
 # WebSocket chat en tiempo real 💬
 ![Vista Previa](./static/img/image.png)
 
-Características:
+**Características:**
 1. Autenticación con JWT
 2. Verificación de no soy un robot
 3. Mensajería en tiempo real
