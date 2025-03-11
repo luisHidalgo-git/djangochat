@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
 def index(request):
-    return render(request, "index.html")
+    return render(request, "index.html", {'breadcrumb': 'Inicio'})
 
 def login_page(request):
     if request.method == 'POST':
@@ -22,7 +22,7 @@ def login_page(request):
             messages.error(request, 'Invalid email or password. Please try again.')
     if request.user.is_authenticated:
         return redirect('/chat/Sala/')
-    return render(request,'login.html')
+    return render(request,'login.html', {'breadcrumb': 'Login'})
 
 @login_required
 def logout_page(request):
@@ -56,5 +56,5 @@ def signup_view(request):
         messages.success(request, 'Signup successful! You can now log in.')
         return redirect('login')
     if request.user.is_authenticated:
-        return redirect('/chat/Sala/') #todo: pass usename
-    return render(request, 'signup.html')
+        return redirect('/chat/Sala/')
+    return render(request, 'signup.html', {'breadcrumb': 'Signup'})
