@@ -112,10 +112,45 @@
             {% endfor %}
           </div>
 
+          <!-- Enhanced Search Form -->
           <form method="GET" action="" class="p-3 ml-auto">
-            <div class="form-group mb-0">
-              <input type="text" name="search" id="searchInput" class="form-control" placeholder="Search messages..."
-                value="{{ search_query }}" />
+            <div class="form-row align-items-center">
+              <div class="col-auto">
+                <input type="text" name="search" class="form-control" placeholder="Search messages..." value="{{ search_query }}">
+              </div>
+              <div class="col-auto">
+                <select name="message_type" class="form-control">
+                  <option value="">Tipo de Mensaje</option>
+                  <option value="normal" {% if message_type == 'normal' %}selected{% endif %}>Normal</option>
+                  <option value="urgent" {% if message_type == 'urgent' %}selected{% endif %}>Urgente</option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <select name="subject" class="form-control">
+                  <option value="all">Todas las Materias</option>
+                  <option value="programming" {% if subject == 'programming' %}selected{% endif %}>Programación</option>
+                  <option value="math" {% if subject == 'math' %}selected{% endif %}>Matemáticas</option>
+                  <option value="english" {% if subject == 'english' %}selected{% endif %}>Inglés</option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <select name="status" class="form-control">
+                  <option value="all">Todos los Estados</option>
+                  <option value="sent" {% if status == 'sent' %}selected{% endif %}>Enviado</option>
+                  <option value="delivered" {% if status == 'delivered' %}selected{% endif %}>Entregado</option>
+                  <option value="read" {% if status == 'read' %}selected{% endif %}>Leído</option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <select name="direction" class="form-control">
+                  <option value="">Dirección</option>
+                  <option value="sent" {% if direction == 'sent' %}selected{% endif %}>Enviados</option>
+                  <option value="received" {% if direction == 'received' %}selected{% endif %}>Recibidos</option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+              </div>
             </div>
           </form>
         </div>

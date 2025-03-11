@@ -9,17 +9,38 @@ from django.core.cache import cache
 
 @login_required
 def chat_room(request, room_name):
-    search_query = request.GET.get('search', '') 
-    users = User.objects.exclude(id=request.user.id) 
+    search_query = request.GET.get('search', '')
+    message_type = request.GET.get('message_type', '')
+    subject = request.GET.get('subject', '')
+    status = request.GET.get('status', '')
+    direction = request.GET.get('direction', '')
+    
+    users = User.objects.exclude(id=request.user.id)
     chats = Message.objects.filter(
         (Q(sender=request.user) & Q(receiver__username=room_name)) |
         (Q(receiver=request.user) & Q(sender__username=room_name))
     )
 
+    # Apply filters
     if search_query:
-        chats = chats.filter(Q(content__icontains=search_query))  
+        chats = chats.filter(Q(content__icontains=search_query))
 
-    chats = chats.order_by('timestamp') 
+    if message_type:
+        chats = chats.filter(message_type=message_type)
+
+    if subject and subject != 'all':
+        chats = chats.filter(subject=subject)
+
+    if status and status != 'all':
+        chats = chats.filter(status=status)
+
+    if direction:
+        if direction == 'sent':
+            chats = chats.filter(sender=request.user)
+        elif direction == 'received':
+            chats = chats.filter(receiver=request.user)
+
+    chats = chats.order_by('timestamp')
     user_last_messages = []
 
     for user in users:
@@ -28,7 +49,6 @@ def chat_room(request, room_name):
             (Q(receiver=request.user) & Q(sender=user))
         ).order_by('-timestamp').first()
 
-        # Get user's online status from cache
         status = cache.get(f'user_status_{user.username}', 'offline')
 
         user_last_messages.append({
@@ -37,7 +57,6 @@ def chat_room(request, room_name):
             'status': status
         })
 
-    # Sort user_last_messages by the timestamp of the last_message in descending order
     user_last_messages.sort(
         key=lambda x: x['last_message'].timestamp if x['last_message'] else timezone.make_aware(datetime.min),
         reverse=True
@@ -48,5 +67,9 @@ def chat_room(request, room_name):
         'chats': chats,
         'users': users,
         'user_last_messages': user_last_messages,
-        'search_query': search_query 
+        'search_query': search_query,
+        'message_type': message_type,
+        'subject': subject,
+        'status': status,
+        'direction': direction
     })
