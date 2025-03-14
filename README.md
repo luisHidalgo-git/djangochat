@@ -9,7 +9,7 @@
 - Validaciones de alertas y errores
 - Visualización de mensajes
 - Soporte de mensajes urgentes
-- soporte de mensajes por materia
+- Soporte de mensajes por materia
 - Desplegado en Railway.app
 
 ## Configuraciones de archivos local
