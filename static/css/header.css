@@ -49,6 +49,10 @@ h1 {
     padding: 0; /* Eliminar el padding superior para subir el título */
 }
 
+h1 a:hover{
+    text-decoration: none;
+}
+
 .breadcrumbs {
     color: white;
     font-size: 16px;
