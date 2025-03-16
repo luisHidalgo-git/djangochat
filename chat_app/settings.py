@@ -12,6 +12,11 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from django.contrib.messages import constants as messages
+from dotenv import load_dotenv
+import dj_database_url
+import os
+
+load_dotenv()
 
 MESSAGE_TAGS = {
     messages.DEBUG: 'alert-info',
@@ -87,14 +92,7 @@ WSGI_APPLICATION = 'chat_app.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "chat",
-        "USER": "luis",
-        "PASSWORD": "dominic06",
-        "HOST": "127.0.0.1",
-        "PORT": "5432",
-    }
+    "default": dj_database_url.config(default="postgresql://postgres:WmPmnKZeOdaovftbCAvznSLReXVBBAyf@shuttle.proxy.rlwy.net:10213/railway")
 }
 
 # Password validation
