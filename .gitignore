@@ -10,3 +10,4 @@ __pycache__
 .env.local
 staticfiles/
 db.sqlite3
+mensaje de bolt.txt
